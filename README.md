@@ -54,9 +54,59 @@ The `build.yml` and `release.yml` workflows are language-agnostic and work as-is
 
 The default tag is `ghcr.io/${{ github.repository }}`, which resolves automatically from your repo name, so no change needed in most cases.
 
-### 4. Configure GitHub
+### 4. Configure code quality tools
 
-**Branch protection** (Settings → Branches → Add rule for `main`):
+This pipeline integrates with SonarCloud and Codecov for static analysis and coverage tracking.
+
+#### SonarCloud
+
+1. Go to [sonarcloud.io](https://sonarcloud.io) and log in with GitHub
+2. Click **"+"** → **"Analyze new project"** and import your repository
+3. Choose **"With GitHub Actions"** and copy the generated token
+4. Add `sonar-project.properties` to your repo root:
+
+```properties
+sonar.projectKey=YOUR_ORG_YOUR_REPO
+sonar.organization=YOUR_ORG
+
+sonar.sources=.
+sonar.exclusions=**/*_test.go
+
+sonar.tests=.
+sonar.test.inclusions=**/*_test.go
+
+sonar.go.coverage.reportPaths=coverage.out
+```
+
+#### Codecov
+
+1. Go to [codecov.io](https://codecov.io) and log in with GitHub
+2. Add your repository and copy the `CODECOV_TOKEN`
+
+#### Coverage file by language
+
+| Language | Command | Coverage file |
+|----------|---------|---------------|
+| Go | `go test -coverprofile=coverage.out ./...` | `coverage.out` |
+| Node.js | `npx jest --coverage` | `coverage/lcov.info` |
+| Python | `pytest --cov=. --cov-report=xml` | `coverage.xml` |
+| Rust | `cargo tarpaulin --out Xml` | `cobertura.xml` |
+| Java | `mvn test` (JaCoCo) | `target/site/jacoco/jacoco.xml` |
+
+Update the `files` field in the Codecov step and `sonar.go.coverage.reportPaths` in `sonar-project.properties` to match your language's coverage file.
+
+### 5. Configure GitHub secrets
+
+Go to **Settings → Secrets and variables → Actions** and add:
+
+| Secret | Description |
+|--------|-------------|
+| `SONAR_TOKEN` | Generated on SonarCloud |
+| `CODECOV_TOKEN` | Generated on Codecov |
+
+### 6. Configure GitHub branch protection
+
+**Settings → Branches → Add rule for `main`**:
 - ✅ Require a pull request before merging
 - ✅ Require status checks: `lint`, `test`
 - ✅ Require branches to be up to date before merging
