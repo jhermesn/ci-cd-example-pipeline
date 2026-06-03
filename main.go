@@ -12,6 +12,7 @@ func main() {
 
 	r.GET("/health", handler.Health)
 	r.POST("/words", handler.Words)
+	r.GET("/count", handler.Count)
 
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal(err)
