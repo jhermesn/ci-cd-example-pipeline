@@ -22,5 +22,6 @@ func Words(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, wordsResponse{Words: strings.Fields(req.Text)})
+	words := strings.Split(req.Text, " ")
+	c.JSON(http.StatusOK, gin.H{"result": words})
 }
